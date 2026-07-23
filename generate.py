@@ -169,11 +169,22 @@ def generate_script(item):
 
 
 def generate_voice(script_text, out_wav):
+    from piper.download_voices import download_voice
+
+    voices_dir = WORK_DIR / "voices"
+    voices_dir.mkdir(parents=True, exist_ok=True)
+    model_path = voices_dir / f"{VOICE}.onnx"
+    config_path = voices_dir / f"{VOICE}.onnx.json"
+    if not model_path.exists() or not config_path.exists():
+        print(f"Downloading voice '{VOICE}' (first run only, cached after)...")
+        download_voice(VOICE, voices_dir)
+
     text_path = WORK_DIR / "script.txt"
     text_path.write_text(script_text)
     with open(text_path, "r") as f_in:
         subprocess.run(
-            ["piper", "--model", VOICE, "--output_file", str(out_wav.resolve())],
+            ["piper", "-m", str(model_path.resolve()), "-c", str(config_path.resolve()),
+             "--output_file", str(out_wav.resolve())],
             stdin=f_in,
             check=True,
         )

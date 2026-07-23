@@ -1,0 +1,3 @@
+requests
+piper-tts
+faster-whisper

@@ -1,0 +1,12 @@
+[
+  { "id": "baba-yaga-1", "story": "Baba Yaga", "culture": "Slavic", "part": 1, "part_total": 3, "status": "idea", "platforms": ["youtube", "tiktok"] },
+  { "id": "baba-yaga-2", "story": "Baba Yaga", "culture": "Slavic", "part": 2, "part_total": 3, "status": "idea", "platforms": ["youtube", "tiktok"] },
+  { "id": "baba-yaga-3", "story": "Baba Yaga", "culture": "Slavic", "part": 3, "part_total": 3, "status": "idea", "platforms": ["youtube", "tiktok"] },
+  { "id": "la-llorona", "story": "La Llorona", "culture": "Mexican", "part": null, "part_total": null, "status": "idea", "platforms": ["youtube", "tiktok"] },
+  { "id": "yuki-onna", "story": "Yuki-onna, the Snow Woman", "culture": "Japanese", "part": null, "part_total": null, "status": "idea", "platforms": ["youtube", "tiktok"] },
+  { "id": "anansi-1", "story": "Anansi and the Sky God's Stories", "culture": "West African", "part": 1, "part_total": 2, "status": "idea", "platforms": ["youtube", "tiktok"] },
+  { "id": "anansi-2", "story": "Anansi and the Sky God's Stories", "culture": "West African", "part": 2, "part_total": 2, "status": "idea", "platforms": ["youtube", "tiktok"] },
+  { "id": "banshee", "story": "The Banshee's Warning", "culture": "Irish", "part": null, "part_total": null, "status": "idea", "platforms": ["youtube", "tiktok"] },
+  { "id": "aswang", "story": "The Aswang", "culture": "Filipino", "part": null, "part_total": null, "status": "idea", "platforms": ["youtube", "tiktok"] },
+  { "id": "maui-sun", "story": "Maui Slows the Sun", "culture": "Polynesian", "part": null, "part_total": null, "status": "idea", "platforms": ["youtube", "tiktok"] }
+]

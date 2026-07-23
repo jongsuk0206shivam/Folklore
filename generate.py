@@ -83,14 +83,34 @@ def build_prompt(item):
     )
 
 
+def pick_model():
+    """Ask Google which models this key can actually use right now, instead of
+    trusting a hardcoded name — Gemini model names get renamed/retired often
+    enough that a hardcoded string is the most likely thing to break here."""
+    url = f"https://generativelanguage.googleapis.com/v1beta/models?key={GEMINI_API_KEY}"
+    resp = requests.get(url, timeout=30)
+    resp.raise_for_status()
+    models = resp.json().get("models", [])
+    usable = [
+        m["name"] for m in models
+        if "generateContent" in m.get("supportedGenerationMethods", [])
+    ]
+    if not usable:
+        raise RuntimeError(
+            "No models supporting generateContent are available to this API key. "
+            "Double-check GEMINI_API_KEY was created at aistudio.google.com/apikey."
+        )
+    flash_models = [m for m in usable if "flash" in m.lower()]
+    return (flash_models or usable)[0]
+
+
 def generate_script(item):
     if not GEMINI_API_KEY:
         raise RuntimeError("GEMINI_API_KEY is not set")
     prompt = build_prompt(item)
-    url = (
-        "https://generativelanguage.googleapis.com/v1beta/models/"
-        f"gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
-    )
+    model = pick_model()
+    print(f"Using Gemini model: {model}")
+    url = f"https://generativelanguage.googleapis.com/v1beta/{model}:generateContent?key={GEMINI_API_KEY}"
     body = {"contents": [{"parts": [{"text": prompt}]}]}
     resp = requests.post(url, json=body, timeout=60)
     resp.raise_for_status()

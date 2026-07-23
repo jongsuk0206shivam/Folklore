@@ -83,10 +83,10 @@ def build_prompt(item):
     )
 
 
-def pick_model():
-    """Ask Google which models this key can actually use right now, instead of
-    trusting a hardcoded name — Gemini model names get renamed/retired often
-    enough that a hardcoded string is the most likely thing to break here."""
+def list_candidate_models():
+    """Ask Google which models this key can actually use right now. Flash text
+    models are tried first (fastest, cheapest); image-generation "flash" models
+    are excluded since they don't take a plain-text generateContent call."""
     url = f"https://generativelanguage.googleapis.com/v1beta/models?key={GEMINI_API_KEY}"
     resp = requests.get(url, timeout=30)
     resp.raise_for_status()
@@ -95,27 +95,47 @@ def pick_model():
         m["name"] for m in models
         if "generateContent" in m.get("supportedGenerationMethods", [])
     ]
-    if not usable:
-        raise RuntimeError(
-            "No models supporting generateContent are available to this API key. "
-            "Double-check GEMINI_API_KEY was created at aistudio.google.com/apikey."
-        )
-    flash_models = [m for m in usable if "flash" in m.lower()]
-    return (flash_models or usable)[0]
+    flash = [m for m in usable if "flash" in m.lower() and "image" not in m.lower()]
+    others = [m for m in usable if m not in flash]
+    ordered = flash + others
+    print(f"Models available to this key ({len(ordered)}): {ordered}")
+    return ordered
 
 
 def generate_script(item):
     if not GEMINI_API_KEY:
         raise RuntimeError("GEMINI_API_KEY is not set")
     prompt = build_prompt(item)
-    model = pick_model()
-    print(f"Using Gemini model: {model}")
-    url = f"https://generativelanguage.googleapis.com/v1beta/{model}:generateContent?key={GEMINI_API_KEY}"
     body = {"contents": [{"parts": [{"text": prompt}]}]}
-    resp = requests.post(url, json=body, timeout=60)
-    resp.raise_for_status()
-    data = resp.json()
-    return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+
+    candidates = list_candidate_models()
+    if not candidates:
+        raise RuntimeError(
+            "This API key lists zero models that support generateContent. "
+            "Regenerate the key at aistudio.google.com/apikey."
+        )
+
+    for model in candidates:
+        url = f"https://generativelanguage.googleapis.com/v1beta/{model}:generateContent?key={GEMINI_API_KEY}"
+        print(f"Trying model: {model}")
+        resp = requests.post(url, json=body, timeout=60)
+        if resp.status_code == 404:
+            print("  -> 404, trying next candidate")
+            continue
+        resp.raise_for_status()
+        data = resp.json()
+        return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+
+    raise RuntimeError(
+        f"All {len(candidates)} candidate models 404'd on the real call, even "
+        f"though the list endpoint says this key can use them: {candidates}. "
+        "That combination points to the key itself rather than a naming issue — "
+        "go to aistudio.google.com/apikey and generate a fresh key (make sure "
+        "it's created against a real Google Cloud project, not a restricted one), "
+        "update the GEMINI_API_KEY secret in the repo, and re-run."
+    )
+
+
 
 
 def generate_voice(script_text, out_wav):

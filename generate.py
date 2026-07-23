@@ -14,6 +14,7 @@ Python requirements: see requirements.txt
 import json
 import os
 import subprocess
+import time
 from pathlib import Path
 
 import requests
@@ -84,9 +85,14 @@ def build_prompt(item):
 
 
 def list_candidate_models():
-    """Ask Google which models this key can actually use right now. Flash text
-    models are tried first (fastest, cheapest); image-generation "flash" models
-    are excluded since they don't take a plain-text generateContent call."""
+    """Ask Google which models this key can actually use right now, and order
+    them by how likely they are to be a good, working, plain-text choice:
+    1. Google's own "-latest" aliases (built specifically so callers don't have
+       to keep guessing dated model names)
+    2. other general-purpose flash text models
+    3. everything else (pro models, previews, etc.) as a last resort
+    Specialty variants (image, tts, computer-use, robotics) are deprioritized
+    since they don't behave like a plain text generateContent call."""
     url = f"https://generativelanguage.googleapis.com/v1beta/models?key={GEMINI_API_KEY}"
     resp = requests.get(url, timeout=30)
     resp.raise_for_status()
@@ -95,9 +101,20 @@ def list_candidate_models():
         m["name"] for m in models
         if "generateContent" in m.get("supportedGenerationMethods", [])
     ]
-    flash = [m for m in usable if "flash" in m.lower() and "image" not in m.lower()]
-    others = [m for m in usable if m not in flash]
-    ordered = flash + others
+
+    def short_name(m):
+        return m.split("/")[-1]
+
+    def is_general_flash(m):
+        n = short_name(m).lower()
+        if "flash" not in n:
+            return False
+        return not any(x in n for x in ("image", "tts", "computer-use", "robotics", "omni"))
+
+    latest = [m for m in usable if short_name(m) in ("gemini-flash-latest", "gemini-pro-latest")]
+    flash = [m for m in usable if is_general_flash(m) and m not in latest]
+    others = [m for m in usable if m not in latest and m not in flash]
+    ordered = latest + flash + others
     print(f"Models available to this key ({len(ordered)}): {ordered}")
     return ordered
 
@@ -115,25 +132,38 @@ def generate_script(item):
             "Regenerate the key at aistudio.google.com/apikey."
         )
 
+    errors = {}
+    consecutive_429s = 0
     for model in candidates:
         url = f"https://generativelanguage.googleapis.com/v1beta/{model}:generateContent?key={GEMINI_API_KEY}"
         print(f"Trying model: {model}")
         resp = requests.post(url, json=body, timeout=60)
-        if resp.status_code == 404:
-            print("  -> 404, trying next candidate")
-            continue
-        resp.raise_for_status()
-        data = resp.json()
-        return data["candidates"][0]["content"]["parts"][0]["text"].strip()
 
-    raise RuntimeError(
-        f"All {len(candidates)} candidate models 404'd on the real call, even "
-        f"though the list endpoint says this key can use them: {candidates}. "
-        "That combination points to the key itself rather than a naming issue — "
-        "go to aistudio.google.com/apikey and generate a fresh key (make sure "
-        "it's created against a real Google Cloud project, not a restricted one), "
-        "update the GEMINI_API_KEY secret in the repo, and re-run."
-    )
+        if resp.status_code == 200:
+            data = resp.json()
+            return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+
+        errors[model] = resp.status_code
+
+        if resp.status_code == 429:
+            consecutive_429s += 1
+            print(f"  -> 429 rate-limited ({consecutive_429s} in a row)")
+            if consecutive_429s >= 3:
+                raise RuntimeError(
+                    "Three models in a row came back 429 (rate limited) — that's "
+                    "the free tier's request cap, not a broken model name. This "
+                    "usually happens from re-running the workflow several times "
+                    "in quick succession while testing. Wait a few minutes (if "
+                    "it's the per-minute limit) or until tomorrow (if it's the "
+                    "daily cap) and run it again — no code change needed."
+                )
+            time.sleep(10)
+            continue
+
+        consecutive_429s = 0
+        print(f"  -> {resp.status_code}, trying next candidate")
+
+    raise RuntimeError(f"All {len(candidates)} candidate models failed. Status codes seen: {errors}")
 
 
 

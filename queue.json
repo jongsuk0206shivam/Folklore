@@ -18,11 +18,12 @@
     "culture": "Slavic",
     "part": 2,
     "part_total": 3,
-    "status": "idea",
+    "status": "rendered",
     "platforms": [
       "youtube",
       "tiktok"
-    ]
+    ],
+    "output": "output/baba-yaga-2.mp4"
   },
   {
     "id": "baba-yaga-3",

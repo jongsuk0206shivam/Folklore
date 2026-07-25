@@ -31,11 +31,12 @@
     "culture": "Slavic",
     "part": 3,
     "part_total": 3,
-    "status": "idea",
+    "status": "rendered",
     "platforms": [
       "youtube",
       "tiktok"
-    ]
+    ],
+    "output": "output/baba-yaga-3.mp4"
   },
   {
     "id": "la-llorona",

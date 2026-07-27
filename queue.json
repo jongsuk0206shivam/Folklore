@@ -57,11 +57,12 @@
     "culture": "Japanese",
     "part": null,
     "part_total": null,
-    "status": "idea",
+    "status": "rendered",
     "platforms": [
       "youtube",
       "tiktok"
-    ]
+    ],
+    "output": "output/yuki-onna.mp4"
   },
   {
     "id": "anansi-1",

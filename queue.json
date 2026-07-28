@@ -70,11 +70,12 @@
     "culture": "West African",
     "part": 1,
     "part_total": 2,
-    "status": "idea",
+    "status": "rendered",
     "platforms": [
       "youtube",
       "tiktok"
-    ]
+    ],
+    "output": "output/anansi-1.mp4"
   },
   {
     "id": "anansi-2",

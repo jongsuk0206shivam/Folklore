@@ -83,11 +83,12 @@
     "culture": "West African",
     "part": 2,
     "part_total": 2,
-    "status": "idea",
+    "status": "rendered",
     "platforms": [
       "youtube",
       "tiktok"
-    ]
+    ],
+    "output": "output/anansi-2.mp4"
   },
   {
     "id": "banshee",

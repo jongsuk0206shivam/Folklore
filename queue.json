@@ -96,11 +96,12 @@
     "culture": "Irish",
     "part": null,
     "part_total": null,
-    "status": "idea",
+    "status": "rendered",
     "platforms": [
       "youtube",
       "tiktok"
-    ]
+    ],
+    "output": "output/banshee.mp4"
   },
   {
     "id": "aswang",

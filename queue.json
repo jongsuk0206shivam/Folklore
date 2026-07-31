@@ -109,11 +109,12 @@
     "culture": "Filipino",
     "part": null,
     "part_total": null,
-    "status": "idea",
+    "status": "rendered",
     "platforms": [
       "youtube",
       "tiktok"
-    ]
+    ],
+    "output": "output/aswang.mp4"
   },
   {
     "id": "maui-sun",

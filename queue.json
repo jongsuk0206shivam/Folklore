@@ -122,10 +122,11 @@
     "culture": "Polynesian",
     "part": null,
     "part_total": null,
-    "status": "idea",
+    "status": "rendered",
     "platforms": [
       "youtube",
       "tiktok"
-    ]
+    ],
+    "output": "output/maui-sun.mp4"
   }
 ]
